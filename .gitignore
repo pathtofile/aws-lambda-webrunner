@@ -1,0 +1,14 @@
+
+# Terraform files
+*/.terraform
+*.hcl
+*.tfplan
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Python
+*.pyc
+
+# Lambda ZIP
+*.zip
