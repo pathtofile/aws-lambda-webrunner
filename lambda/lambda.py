@@ -1,6 +1,18 @@
 import json
 import os
 import boto3
+import urllib3
+
+
+def do_stuff(input):
+    http = urllib3.PoolManager()
+    resp = http.request("GET", "https://ipv4.icanhazip.com")
+    if resp.status == 200:
+        ip_addr = resp.data.decode().strip()
+        output = f"IP: {ip_addr}"
+    else:
+        output = f"Error: {resp.data}"
+    return output
 
 
 def lambda_handler(event, context):
@@ -9,17 +21,16 @@ def lambda_handler(event, context):
     failures = []
 
     for record in event["Records"]:
-        data = record["body"]
-        print(f"ResponseQueueURL: {queue_url}")
-        print(f"Data: {data}")
+        input = record["body"]
+        print(f"Got Message: {input}")
 
-        # if failure_thing:
-        #     failures.append(record["messageId"])
+        data = do_stuff(input)
+        if data is None:
+            failures.append(record["messageId"])
 
-        response_data = f"Returining message {data}"
         sqs.send_message(
             QueueUrl=queue_url,
-            MessageBody=response_data,
+            MessageBody=data,
         )
 
     lambda_resp = {"batchItemFailures": failures}

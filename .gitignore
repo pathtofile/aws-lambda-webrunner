@@ -12,3 +12,9 @@
 
 # Lambda ZIP
 *.zip
+
+# Config JSON
+*.json
+
+# Input file
+input.txt
