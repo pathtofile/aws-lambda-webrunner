@@ -12,6 +12,8 @@ def do_stuff(input):
         output = f"IP: {ip_addr}"
     else:
         output = f"Error: {resp.data}"
+
+    print(f"[*] Message: {input} | {output}")
     return output
 
 
@@ -22,7 +24,6 @@ def lambda_handler(event, context):
 
     for record in event["Records"]:
         input = record["body"]
-        print(f"Got Message: {input}")
 
         data = do_stuff(input)
         if data is None:

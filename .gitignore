@@ -17,4 +17,4 @@
 *.json
 
 # Input file
-input.txt
+input*.txt

@@ -39,3 +39,10 @@ https://us-west-1.console.aws.amazon.com/lambda/home?region=us-west-1#/functions
 https://us-west-1.console.aws.amazon.com/cloudwatch/home?region=us-west-1#logsV2:log-groups/log-group/$252Faws$252Flambda$252Fdothingi
 https://us-west-1.console.aws.amazon.com/sqs/v2/home?region=us-west-1#/queues
 https://us-east-1.console.aws.amazon.com/iamv2/home?region=us-east-1#/roles
+
+
+# Alternative:
+Call function directly with batches of 10 messages:
+    https://stackoverflow.com/questions/39456309/using-boto-to-invoke-lambda-functions-how-do-i-do-so-asynchronously
+TODO: Test if this results in more IP Addressses?
+

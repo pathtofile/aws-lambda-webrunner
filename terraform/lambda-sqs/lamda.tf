@@ -16,6 +16,8 @@ resource "aws_lambda_function" "tf_lambda" {
   runtime       = "python3.9"
   filename      = "${path.module}/lambda.zip"
   handler       = "lambda.lambda_handler"
+  timeout       = 5 # Seconds
+  memory_size   = 128
 
   environment {
     variables = {

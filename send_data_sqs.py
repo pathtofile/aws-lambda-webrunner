@@ -12,6 +12,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Send messages to SQS queue")
     parser.add_argument("config", help="path to 'terraform output --json' config JSON")
     parser.add_argument("input_file", help="File with tasking, one per line")
+    parser.add_argument(
+        "--batch-size",
+        "-b",
+        dest="batch_size",
+        default=10,
+        help="Send data to a lambda in groups of this many",
+    )
     args = parser.parse_args()
 
     # Parse config to extract queues
@@ -24,16 +31,14 @@ if __name__ == "__main__":
     with open(args.input_file, "r") as f:
         # Read file in chunks
         i = 0
-        chunk_size = 10
         while True:
             i += 1
-            lines = list(islice(f, chunk_size))
+            lines = list(islice(f, args.batch_size))
             if not lines:
                 break
             queue = queues[i % len(queues)]
             messages = []
-            for j in range(chunk_size):
-                breakpoint()
+            for j in range(args.batch_size):
                 messages.append(
                     {
                         # Messages have a per-batch ID
@@ -45,4 +50,4 @@ if __name__ == "__main__":
             resp = queue.send_messages(Entries=messages)
             if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
                 print("Error?")
-            print(f"Sent {(i * chunk_size)} messages to {queue.url}")
+            print(f"Sent {(i * args.batch_size)} messages to {queue.url}")

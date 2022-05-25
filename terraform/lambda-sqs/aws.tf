@@ -10,3 +10,4 @@ terraform {
 # Used when we need to reference the name of
 # the current region
 data "aws_region" "current" {}
+output "aws_region" { value = data.aws_region.current.name }
