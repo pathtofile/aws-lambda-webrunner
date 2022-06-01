@@ -12,7 +12,7 @@ resource "null_resource" "create_lambda_zip" {
 
 # Add ZIP to S3
 resource "aws_s3_bucket" "tf_bucket" {
-  bucket = "dothingi"
+  bucket = "dothingi-${data.aws_region.current.name}"
 }
 resource "aws_s3_bucket_acl" "tf_bucket_acl" {
   bucket = aws_s3_bucket.tf_bucket.id
@@ -29,7 +29,7 @@ resource "aws_s3_object" "tf_bucket_object" {
 
 
 
-variable "lambda_count" { default = 1 }
+variable "lambda_count" { default = 5 }
 
 resource "aws_lambda_function" "tf_lambda" {
   count         = var.lambda_count
@@ -56,9 +56,9 @@ resource "aws_lambda_function" "tf_lambda" {
 
 
 # Lambda-SQS Event Source mapping
-resource "aws_lambda_event_source_mapping" "example" {
-  count            = var.lambda_count
-  event_source_arn = aws_sqs_queue.tf_queue_in.arn
-  function_name    = aws_lambda_function.tf_lambda[count.index].arn
-  batch_size       = 1
-}
+# resource "aws_lambda_event_source_mapping" "example" {
+#   count            = var.lambda_count
+#   event_source_arn = aws_sqs_queue.tf_queue_in.arn
+#   function_name    = aws_lambda_function.tf_lambda[count.index].arn
+#   batch_size       = 1
+# }
