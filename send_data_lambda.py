@@ -2,7 +2,7 @@ import argparse
 from itertools import islice
 import boto3
 import json
-
+import random
 
 def grouped(iterator, size):
     yield list(next(iterator) for _ in range(size))
@@ -24,12 +24,19 @@ if __name__ == "__main__":
 
     # Parse config to extract queues
     with open(args.config, "r") as f:
-        config = json.load(f)
+        configs = json.load(f)["config"]["value"]
 
-    func = "dothingi"
-    clients = []
-    for region in config["aws_region"]["value"]:
-        clients.append(boto3.client("lambda", region_name=region))
+    # 'flatten' list of region and func to make it easier
+    # to spread the load out
+
+    funcs = []
+    for config in configs:
+        for func in config["lambda_funcs"]:
+            funcs.append({
+                "client": boto3.client("lambda", region_name=config["aws_region"]),
+                "func_name": func
+            })
+    random.shuffle(funcs)
 
     with open(args.input_file, "r") as f:
         # Read file in chunks
@@ -39,7 +46,9 @@ if __name__ == "__main__":
             lines = list(islice(f, args.batch_size))
             if not lines:
                 break
-            client = clients[i % len(clients)]
+            func = funcs[i % len(funcs)]
+            func_name = func["func_name"]
+            client = func["client"]
 
             # Build JSON to match SQS Message format
             messages = []
@@ -54,7 +63,7 @@ if __name__ == "__main__":
 
             # Call lambda function
             resp = client.invoke(
-                FunctionName=func,
+                FunctionName=func_name,
                 InvocationType="Event",
                 Payload=json.dumps(data).encode(),
             )
@@ -63,4 +72,4 @@ if __name__ == "__main__":
                 print(f"Error invoking function: {err}")
                 continue
 
-            print(f"{(i * args.batch_size)} msg to {func} {client.meta.region_name}")
+            print(f"{(i * args.batch_size)} msg to {func_name} {client.meta.region_name}")

@@ -56,14 +56,9 @@ resource "aws_lambda_function" "tf_lambda" {
 
 
 # Lambda-SQS Event Source mapping
-# resource "aws_lambda_event_source_mapping" "example" {
-#   count            = var.lambda_count
-#   event_source_arn = aws_sqs_queue.tf_queue_in.arn
-#   function_name    = aws_lambda_function.tf_lambda[count.index].arn
-#   batch_size       = 1
-# }
-
-
-output "lambda_funcs" {
-  value = aws_lambda_function.tf_lambda[*].id
+resource "aws_lambda_event_source_mapping" "example" {
+  count            = var.lambda_count
+  event_source_arn = aws_sqs_queue.tf_queue_in.arn
+  function_name    = aws_lambda_function.tf_lambda[count.index].arn
+  batch_size       = 1
 }

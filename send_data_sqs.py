@@ -24,10 +24,12 @@ if __name__ == "__main__":
 
     # Parse config to extract queues
     with open(args.config, "r") as f:
-        config = json.load(f)
-    queues = list()
-    for q in config["queue_in_url"]["value"]:
-        queues.append(boto3.resource("sqs", region_name=q["region"]).Queue(q["url"]))
+        configs = json.load(f)["config"]["value"]
+
+    queues = []
+    for c in configs:
+        sqs = boto3.resource("sqs", region_name=c["aws_region"])
+        queues.append(sqs.Queue(c["queue_in_url"]))
 
     with open(args.input_file, "r") as f:
         # Read file in chunks

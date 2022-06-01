@@ -40,17 +40,6 @@ locals {
   ])
 }
 
-output "queue_in_url" {
-  value = local.modules[*].queue_in_url
-}
-output "queue_out_url" {
-  value = local.modules[*].queue_out_url
-}
-
-output "aws_region" {
-  value = local.modules[*].aws_region
-}
-
-output "lambda_funcs" {
-  value = local.modules[*].lambda_funcs
+output "config" {
+  value = local.modules[*].config
 }

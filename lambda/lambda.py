@@ -4,6 +4,8 @@ import boto3
 import urllib3
 
 
+# See this for details on how to use urllib3
+# https://urllib3.readthedocs.io/en/stable/user-guide.html
 def do_stuff(input):
     http = urllib3.PoolManager()
     resp = http.request("GET", "https://ipv4.icanhazip.com")
