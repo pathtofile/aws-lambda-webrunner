@@ -9,4 +9,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with ZipFile(args.output_zip, "w") as zipf:
-        zipf.write(args.input_file, arcname=PurePath(args.input_file).name)
+        zipf.write(args.input_file, arcname="lambda.py")

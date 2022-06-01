@@ -29,7 +29,7 @@ resource "aws_s3_object" "tf_bucket_object" {
 
 
 
-variable "lambda_count" { default = 5 }
+variable "lambda_count" { default = 10 }
 
 resource "aws_lambda_function" "tf_lambda" {
   count         = var.lambda_count
@@ -55,10 +55,9 @@ resource "aws_lambda_function" "tf_lambda" {
 }
 
 
-# Lambda-SQS Event Source mapping
-# resource "aws_lambda_event_source_mapping" "example" {
-#   count            = var.lambda_count
-#   event_source_arn = aws_sqs_queue.tf_queue_in.arn
-#   function_name    = aws_lambda_function.tf_lambda[count.index].arn
-#   batch_size       = 1
-# }
+# Link the input Queue to one of the lambdas
+resource "aws_lambda_event_source_mapping" "example" {
+  event_source_arn = aws_sqs_queue.tf_queue_in.arn
+  function_name    = aws_lambda_function.tf_lambda[0].arn
+  batch_size       = 10
+}
