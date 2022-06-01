@@ -50,3 +50,7 @@ output "queue_out_url" {
 output "aws_region" {
   value = local.modules[*].aws_region
 }
+
+output "lambda_funcs" {
+  value = local.modules[*].lambda_funcs
+}

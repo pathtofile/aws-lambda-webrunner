@@ -17,6 +17,7 @@ if __name__ == "__main__":
         "-b",
         dest="batch_size",
         default=10,
+        type=int,
         help="Send data to a lambda in groups of this many",
     )
     args = parser.parse_args()

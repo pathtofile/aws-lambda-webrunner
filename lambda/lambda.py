@@ -7,13 +7,14 @@ import urllib3
 def do_stuff(input):
     http = urllib3.PoolManager()
     resp = http.request("GET", "https://ipv4.icanhazip.com")
+    name = os.environ["LambdaName"]
     if resp.status == 200:
         ip_addr = resp.data.decode().strip()
-        output = f"IP: {ip_addr}"
+        output = f"{name} | IP: {ip_addr}"
     else:
-        output = f"Error: {resp.data}"
+        output = f"{name} | Error: {resp.data}"
 
-    print(f"[*] Message: {input} | {output}")
+    print(f"[*] Message: {name} | {input} | {output}")
     return output
 
 

@@ -17,6 +17,7 @@ if __name__ == "__main__":
         "-b",
         dest="batch_size",
         default=10,
+        type=int,
         help="Send data to a lambda in groups of this many",
     )
     args = parser.parse_args()
@@ -57,10 +58,9 @@ if __name__ == "__main__":
                 InvocationType="Event",
                 Payload=json.dumps(data).encode(),
             )
-            if resp["StatusCode"] != 202:
+            if resp["StatusCode"] < 200 or resp["StatusCode"] > 299:
                 err = resp["Payload"].read().decode()
-                print(f"Error: {err}")
-            else:
-                print(
-                    f"Sent {(i * args.batch_size)} messages to {func} {client.meta.region_name}"
-                )
+                print(f"Error invoking function: {err}")
+                continue
+
+            print(f"{(i * args.batch_size)} msg to {func} {client.meta.region_name}")

@@ -11,11 +11,11 @@ resource "aws_sqs_queue" "tf_queue_out" {
 locals {
   in_url = {
     region = data.aws_region.current.name
-    url = aws_sqs_queue.tf_queue_in.url
+    url    = aws_sqs_queue.tf_queue_in.url
   }
   out_url = {
     region = data.aws_region.current.name
-    url = aws_sqs_queue.tf_queue_out.url
+    url    = aws_sqs_queue.tf_queue_out.url
   }
 }
 

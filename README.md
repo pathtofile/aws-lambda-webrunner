@@ -45,4 +45,3 @@ https://us-east-1.console.aws.amazon.com/iamv2/home?region=us-east-1#/roles
 Call function directly with batches of 10 messages:
     https://stackoverflow.com/questions/39456309/using-boto-to-invoke-lambda-functions-how-do-i-do-so-asynchronously
 TODO: Test if this results in more IP Addressses?
-
