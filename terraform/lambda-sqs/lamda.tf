@@ -12,7 +12,7 @@ resource "null_resource" "create_lambda_zip" {
 
 # Add ZIP to S3
 resource "aws_s3_bucket" "tf_bucket" {
-  bucket = "dothingi-${data.aws_region.current.name}"
+  bucket = "${var.base_name}-${data.aws_region.current.name}"
 }
 resource "aws_s3_bucket_acl" "tf_bucket_acl" {
   bucket = aws_s3_bucket.tf_bucket.id
@@ -27,26 +27,21 @@ resource "aws_s3_object" "tf_bucket_object" {
   depends_on = [null_resource.create_lambda_zip]
 }
 
-
-
-variable "lambda_count" { default = 10 }
-
 resource "aws_lambda_function" "tf_lambda" {
   count         = var.lambda_count
-  function_name = "dothingi_${count.index}"
+  function_name = "${var.base_name}-${count.index}"
   role          = aws_iam_role.tf_role.arn
   runtime       = "python3.9"
   handler       = "lambda.lambda_handler"
-  timeout       = 5 # Seconds
-  memory_size   = 128
+  timeout       = var.lambda_timeout_seconds
+  memory_size   = var.lambda_memory_size
   s3_bucket     = aws_s3_bucket.tf_bucket.id
   s3_key        = aws_s3_object.tf_bucket_object.id
-  # filename      = "${path.module}/lambda.zip"
 
   environment {
     variables = {
       ResponseQueueURL = aws_sqs_queue.tf_queue_out.url
-      LambdaName       = "dothingi_${count.index}"
+      LambdaName       = "${var.base_name}-${count.index}"
     }
   }
 
@@ -57,7 +52,9 @@ resource "aws_lambda_function" "tf_lambda" {
 
 # Link the input Queue to one of the lambdas
 resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn = aws_sqs_queue.tf_queue_in.arn
-  function_name    = aws_lambda_function.tf_lambda[0].arn
+  count = var.enable_input_queue ? var.lambda_count : 0
+
+  event_source_arn = aws_sqs_queue.tf_queue_in[0].arn
+  function_name    = aws_lambda_function.tf_lambda[count.index].arn
   batch_size       = 10
 }

@@ -1,7 +1,6 @@
-# Role and Policy to allow Lambda to send and recieve
-# SQS messages
+# Role and Policy to allow Lambda to send and recieve SQS messages
 resource "aws_iam_role" "tf_role" {
-  name               = "dothingi-role-${data.aws_region.current.name}"
+  name               = "${var.base_name}-role-${data.aws_region.current.name}"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -17,7 +16,7 @@ EOF
 }
 
 resource "aws_iam_policy" "tf_policy" {
-  name   = "dothingi-policy-${data.aws_region.current.name}"
+  name   = "${var.base_name}-policy-${data.aws_region.current.name}"
   policy = <<EOF
 {
   "Version": "2012-10-17",

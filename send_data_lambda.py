@@ -4,13 +4,19 @@ import boto3
 import json
 import random
 
+
 def grouped(iterator, size):
     yield list(next(iterator) for _ in range(size))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Send messages to SQS queue")
-    parser.add_argument("config", help="path to 'terraform output --json' config JSON")
+    parser.add_argument(
+        "tf_config", help="path to 'terraform output --json' config JSON"
+    )
+    parser.add_argument(
+        "url_config", help="path to URL config JSON detailing ULS, headers, etc"
+    )
     parser.add_argument("input_file", help="File with tasking, one per line")
     parser.add_argument(
         "--batch-size",
@@ -23,19 +29,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Parse config to extract queues
-    with open(args.config, "r") as f:
+    with open(args.tf_config, "r") as f:
         configs = json.load(f)["config"]["value"]
+
+    with open(args.url_config, "r") as f:
+        uconfig_txt = f.read()
 
     # 'flatten' list of region and func to make it easier
     # to spread the load out
-
     funcs = []
     for config in configs:
         for func in config["lambda_funcs"]:
-            funcs.append({
-                "client": boto3.client("lambda", region_name=config["aws_region"]),
-                "func_name": func
-            })
+            funcs.append(
+                {
+                    "client": boto3.client("lambda", region_name=config["aws_region"]),
+                    "func_name": func,
+                }
+            )
     random.shuffle(funcs)
 
     with open(args.input_file, "r") as f:
@@ -53,11 +63,14 @@ if __name__ == "__main__":
             # Build JSON to match SQS Message format
             messages = []
             for j in range(args.batch_size):
+                txt = uconfig_txt.replace(r"{{LINE}}", lines[j].strip())
+                uconfig = json.loads(txt)
+                task = {"url": uconfig["url"]}
+                for c in ["method", "headers", "params"]:
+                    if c in uconfig:
+                        task[c] = uconfig[c]
                 messages.append(
-                    {
-                        "messageId": lines[j].strip(),
-                        "body": lines[j].strip(),
-                    }
+                    {"messageId": lines[j].strip(), "body": json.dumps(task)}
                 )
             data = {"Records": messages}
 
@@ -72,4 +85,6 @@ if __name__ == "__main__":
                 print(f"Error invoking function: {err}")
                 continue
 
-            print(f"{(i * args.batch_size)} msg to {func_name} {client.meta.region_name}")
+            print(
+                f"{(i * args.batch_size)} msg to {func_name} {client.meta.region_name}"
+            )

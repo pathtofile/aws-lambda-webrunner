@@ -6,10 +6,8 @@ provider "aws" {
   alias  = "us-west-1"
 }
 module "tf_module_01" {
-  source = "./lambda-sqs"
-  providers = {
-    aws = aws.us-west-1
-  }
+  source    = "./lambda-sqs"
+  providers = { aws = aws.us-west-1 }
 }
 # ---------------------------------
 # ---------------------------------
@@ -21,10 +19,8 @@ module "tf_module_01" {
 #   alias  = "us-east-1"
 # }
 # module "tf_module_02" {
-#   source = "./lambda-sqs"
-#   providers = {
-#     aws = aws.us-east-1
-#   }
+#   source    = "./lambda-sqs"
+#   providers = { aws = aws.us-east-1 }
 # }
 # ---------------------------------
 # ---------------------------------
