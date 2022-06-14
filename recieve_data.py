@@ -77,7 +77,7 @@ if __name__ == "__main__":
     unique_data = []
     try:
         with ExitStack():
-            outf = open(args.output, "w") if args.output else None
+            outf = open(args.output, "w", encoding="utf-8") if args.output else None
             while True:
                 recieve_queues(args, queues, outf)
     except KeyboardInterrupt:
