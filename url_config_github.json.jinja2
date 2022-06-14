@@ -1,0 +1,8 @@
+{
+    "url": "https://api.github.com/users/{{ line }}",
+    "method": "GET",
+    "headers": {
+        "Content-Type": "application/vnd.github.v3+json",
+        "x-line-num": {{ line_num }}
+    }
+}

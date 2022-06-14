@@ -14,9 +14,9 @@
 *.zip
 
 # Config JSON
-*.json
+tf_config.json
 
 # Input file
 input*.txt
 
-get.py
+custom/*
