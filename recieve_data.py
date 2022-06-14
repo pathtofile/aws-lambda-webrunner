@@ -4,11 +4,22 @@ import json
 import time
 import boto3
 
-def log(data, outf):
-    print(data)
+
+def log_data(data, line, json_response, outf):
+    if json_response:
+        data = json.loads(data)
+    output = json.dumps(
+        {
+            "line": line,
+            "data": data,
+        }
+    )
+
+    print(output)
     if outf:
-        outf.write(f"{data}\n")
+        outf.write(f"{output}\n")
         outf.flush()
+
 
 def recieve_queues(args, queues, outf):
     for queue in queues:
@@ -19,12 +30,14 @@ def recieve_queues(args, queues, outf):
         for i, message in enumerate(messages):
             resp = json.loads(message.body)
             data = resp["data"]
+            line = resp["line"]
+            json_response = resp["json_response"]
             if args.unique_only:
                 if data not in unique_data:
-                    log(data, outf)
+                    log_data(data, line, json_response, outf)
                     unique_data.append(data)
             else:
-                log(data, outf)
+                log_data(data, line, json_response, outf)
 
             messages_to_delete.append(
                 {"Id": f"id-{i}", "ReceiptHandle": message.receipt_handle}

@@ -10,7 +10,11 @@ def gen_body(uconfig_txt, line, line_num):
     txt = Template(uconfig_txt).render(line=line, line_num=line_num)
 
     uconfig = json.loads(txt)
-    task = {"url": uconfig["url"]}
+    task = {
+        "url": uconfig["url"],
+        "line": line,
+        "json_response": uconfig.get("json_response", True),
+    }
     for c in ["method", "headers", "params"]:
         if c in uconfig:
             task[c] = uconfig[c]
