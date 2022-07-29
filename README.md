@@ -1,4 +1,25 @@
-# Bulk thing do-er thing using AWS
+# AWS Lambda Request Maker
+Spreads out arbitrary web requests across multiple AWS Lambdas.
+
+# Motivation
+Plent of projects like this already exist, but I had a need to be able to easily 'spread out'
+bulk web requests across multiple IPs, prefable also across multiple geographic reagions.
+
+# Design
+This project uses Terraform to setup multiple AWS Lambdas and [SQS Queues](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
+across one or more AWS regions. You manually send a number of requests to the lambdas to run, which will then 
+
+
+
+
+
+
+
+
+
+
+
+
 
 Testing using AWS SQS (Simple Queue Service) and Lambda to run lots of concurent *things*
 that once, and store results.
@@ -47,3 +68,4 @@ Call function directly with batches of 10 messages:
 TODO: Test if this results in more IP Addressses?
 
 python .\send_data.py .\tf_config.json .\url_config_ip.json.jinja2 --input 3 --input-type range -b 10
+python .\recieve_data.py .\tf_config.json -o output.json

@@ -8,6 +8,12 @@ provider "aws" {
 module "tf_module_01" {
   source    = "./lambda-sqs"
   providers = { aws = aws.us-west-1 }
+
+  base_name              = var.base_name
+  lambda_count           = var.lambda_count
+  lambda_timeout_seconds = var.lambda_timeout_seconds
+  lambda_memory_size     = var.lambda_memory_size
+  enable_input_queue     = var.enable_input_queue
 }
 # ---------------------------------
 # ---------------------------------
@@ -21,6 +27,12 @@ module "tf_module_01" {
 # module "tf_module_02" {
 #   source    = "./lambda-sqs"
 #   providers = { aws = aws.us-east-1 }
+
+#   base_name              = var.base_name
+#   lambda_count           = var.lambda_count
+#   lambda_timeout_seconds = var.lambda_timeout_seconds
+#   lambda_memory_size     = var.lambda_memory_size
+#   enable_input_queue     = var.enable_input_queue
 # }
 # ---------------------------------
 # ---------------------------------
