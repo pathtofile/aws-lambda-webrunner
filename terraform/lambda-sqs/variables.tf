@@ -2,7 +2,7 @@
 variable "base_name" { default = "dothingi" }
 
 # How many and how 'beefy' each lambda should be
-variable "lambda_count" { default = 1 }
+variable "lambda_count" { default = 10 }
 variable "lambda_timeout_seconds" { default = 60 }
 variable "lambda_memory_size" { default = 128 }
 
@@ -11,5 +11,5 @@ variable "lambda_memory_size" { default = 128 }
 variable "enable_input_queue" {
   description = "If set to true, also create input SQS queue"
   type        = bool
-  default     = true
+  default     = false
 }

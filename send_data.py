@@ -7,7 +7,7 @@ from jinja2 import Template
 
 
 def gen_body(uconfig_txt, line, line_num):
-    txt = Template(uconfig_txt).render(line=line, line_num=line_num)
+    txt = Template(uconfig_txt).render(line=line, line_num=line_num, counter=line_num)
 
     uconfig = json.loads(txt)
     task = {
@@ -84,19 +84,27 @@ def parse_file(args, queues, funcs):
 
 
 def parse_range(args, queues, funcs):
-    final = int(args.input)
-    i = 0
+    first = 0
+    if "-" in args.range:
+        first = int(args.range.split("-")[0])
+        final = int(args.range.split("-")[1])
+    else:
+        final = int(args.range)
+
+    breakpoint()
+    start = first
     while True:
-        start = i * args.batch_size
         stop = min(final, start + args.batch_size)
-        lines = [str(i) for i in range(start, stop)]
+        lines = [str(i) for i in range(start, stop+1)]
         if args.use_sqs:
-            send_sqs(i, lines, queues, args.batch_size)
+            send_sqs(start, lines, queues, args.batch_size)
         else:
-            send_lamda(i, lines, funcs, args.batch_size)
+            send_lamda(start, lines, funcs, args.batch_size)
+        
         if stop >= final:
             break
-        i += 1
+        
+        start += args.batch_size
     pass
 
 
@@ -123,18 +131,12 @@ if __name__ == "__main__":
         type=int,
         help="Send data to a lambda in groups of this many",
     )
-    parser.add_argument(
-        "--input",
-        "-i",
-        help="either a file with tasking, one per line, or a number or requests to make",
+    input_type = parser.add_mutually_exclusive_group(required=True)
+    input_type.add_argument(
+        "--range", "-r", help="Range counter, either a number or a range like 1-10"
     )
-    parser.add_argument(
-        "--input-type",
-        "-it",
-        dest="input_type",
-        default="file",
-        choices=["file", "range"],
-        help="input is either a file with tasking, one per line, or a number or requests to make",
+    input_type.add_argument(
+        "--input-file", "-i", dest="input", help="Input file to use"
     )
     args = parser.parse_args()
 
@@ -162,7 +164,7 @@ if __name__ == "__main__":
             queues.append(sqs.Queue(config["queue_in_url"]))
     random.shuffle(funcs)
 
-    if args.input_type == "file":
+    if args.input:
         parse_file(args, queues, funcs)
     else:
         parse_range(args, queues, funcs)

@@ -1,7 +1,7 @@
 # AWS Lambda to handle messages
 resource "null_resource" "create_lambda_zip" {
   provisioner "local-exec" {
-    command = "python ${path.module}/scripts/zip_create.py ${path.module}/../../lambda/lambda.py ${path.module}/lambda.zip"
+    command = "python ${path.module}/scripts/zip_create.py ${path.module}/lambda.py ${path.module}/lambda.zip"
   }
 
   provisioner "local-exec" {

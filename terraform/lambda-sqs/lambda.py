@@ -4,8 +4,8 @@ import boto3
 import urllib3
 
 
-# # See this for details on how to use urllib3
-# # https://urllib3.readthedocs.io/en/stable/user-guide.html
+# See this for details on how to use urllib3
+# https://urllib3.readthedocs.io/en/stable/user-guide.html
 def do_request(task):
     method = task.get("method", "GET")
     headers = task.get("headers")
