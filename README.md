@@ -73,20 +73,34 @@ python send_data.py --help
 ```
 
 ## Get data
-Use the [get_data](./get_data.py) Script, passing in the outputted Terraform config:
-
+You can either use the [get_data](./get_data.py) script, passing in the outputted Terraform config:
 ```bash
-# Stream to stdout:
+# Stream to stdout
 python get_data.py
 
-# Save to file:
-python get_data.py --output data.log
+# Pretty-print
+python get_data.py --pretty
+
+# Also log to file
+python get_data.py --output-file data.log
 
 # Only get unique responses (filters out 404s, etc.)
 python get_data.py --unique-only
 
 # For more options
 python get_data.py --help
+```
+
+Or you can get the results synchronously when sending the data:
+```bash
+# Stream to stdout
+python send_data.py url_config_github.jinja2 --input-file users.txt --output
+
+# Pretty-print
+python send_data.py url_config_github.jinja2 --input-file users.txt --output-pretty
+
+# Also log to file
+python send_data.py url_config_github.jinja2 --input-file users.txt --output-file data.log
 ```
 
 # Teardown

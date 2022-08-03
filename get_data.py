@@ -5,11 +5,12 @@ import subprocess
 import time
 import boto3
 
+UNIQUE_DATA = []
 
-def log_data(data, line, json_response, outf):
+def log_data(data, line, json_response, outf, pretty):
     if json_response:
         data = json.loads(data)
-    if args.pretty:
+    if pretty:
         output = json.dumps(
             {
                 "line": line,
@@ -32,22 +33,25 @@ def log_data(data, line, json_response, outf):
 
 
 def recieve_queues(args, queues, outf):
+    global UNIQUE_DATA
+    message_count = 0
     for queue in queues:
         messages_to_delete = []
         messages = queue.receive_messages(
             MaxNumberOfMessages=args.batch_size, WaitTimeSeconds=1
         )
+        message_count += len(messages)
         for i, message in enumerate(messages):
             resp = json.loads(message.body)
             data = resp["data"]
             line = resp["line"]
             json_response = resp["json_response"]
             if args.unique_only:
-                if data not in unique_data:
-                    log_data(data, line, json_response, outf)
-                    unique_data.append(data)
+                if data not in UNIQUE_DATA:
+                    log_data(data, line, json_response, outf, args.pretty)
+                    UNIQUE_DATA.append(data)
             else:
-                log_data(data, line, json_response, outf)
+                log_data(data, line, json_response, outf, args.pretty)
 
             messages_to_delete.append(
                 {"Id": f"id-{i}", "ReceiptHandle": message.receipt_handle}
@@ -61,12 +65,31 @@ def recieve_queues(args, queues, outf):
             # Print 'summary' of messages
             print(f"[{len(messages):02}] .")
         time.sleep(0.1)
+    return message_count
 
 
 def get_configs():
     proc = subprocess.run(["terraform", "output", "--json"], capture_output=True)
     config_json = proc.stdout.decode()
     return json.loads(config_json)["config"]["value"]
+
+
+def get_data(args, configs):
+    queues = []
+    for c in configs:
+        sqs = boto3.resource("sqs", region_name=c["aws_region"])
+        queues.append(sqs.Queue(c["queue_out_url"]))
+
+    try:
+        with ExitStack():
+            outf = open(args.output_file, "w", encoding="utf-8") if args.output_file else None
+            total_messages = 0
+            while True:
+                total_messages += recieve_queues(args, queues, outf)
+                if args.expected_count > 0 and total_messages >= args.expected_count:
+                    break
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
@@ -87,8 +110,9 @@ if __name__ == "__main__":
         help="Read data from SQS in batches of this",
     )
     parser.add_argument(
-        "--output",
-        "-o",
+        "--output-file",
+        "-f",
+        dest="output_file",
         help="Optional output file to stream to",
     )
     parser.add_argument(
@@ -97,21 +121,17 @@ if __name__ == "__main__":
         help="Prettify output",
         action="store_true",
     )
+    parser.add_argument(
+        "--expected-count",
+        "-e",
+        dest="expected_count",
+        default=0,
+        type=int,
+        help="Expected number of responses, if known",
+    )
     args = parser.parse_args()
 
     # Parse config to extract queues
     configs = get_configs()
 
-    queues = []
-    for c in configs:
-        sqs = boto3.resource("sqs", region_name=c["aws_region"])
-        queues.append(sqs.Queue(c["queue_out_url"]))
-
-    unique_data = []
-    try:
-        with ExitStack():
-            outf = open(args.output, "w", encoding="utf-8") if args.output else None
-            while True:
-                recieve_queues(args, queues, outf)
-    except KeyboardInterrupt:
-        pass
+    get_data(args, configs)

@@ -1,11 +1,12 @@
 import argparse
 from itertools import islice
+from types import SimpleNamespace
 import boto3
 import json
 import random
 import subprocess
 from jinja2 import Template
-
+from get_data import get_data
 
 def gen_body(uconfig_txt, line, line_num):
     txt = Template(uconfig_txt).render(line=line, line_num=line_num, counter=line_num)
@@ -44,9 +45,10 @@ def send_lamda(i, lines, funcs, batch_size):
     if resp["StatusCode"] < 200 or resp["StatusCode"] > 299:
         err = resp["Payload"].read().decode()
         print(f"Error invoking function: {err}")
-        return
+        return 0
 
     print(f"Sent {len(lines)} messages to {func_name} {client.meta.region_name}")
+    return len(lines)
 
 
 def send_sqs(i, lines, queues, batch_size):
@@ -67,9 +69,11 @@ def send_sqs(i, lines, queues, batch_size):
     if resp["ResponseMetadata"]["HTTPStatusCode"] != 200:
         print("Error?")
     print(f"Sent {len(lines)} messages to {queue.url}")
+    return len(lines)
 
 
 def parse_file(args, queues, funcs):
+    total_lines = 0
     with open(args.input, "r") as f:
         # Read file in chunks
         i = 0
@@ -78,14 +82,16 @@ def parse_file(args, queues, funcs):
             if not lines:
                 break
             if args.use_sqs:
-                send_sqs(i, lines, queues, args.batch_size)
+                total_lines += send_sqs(i, lines, queues, args.batch_size)
             else:
-                send_lamda(i, lines, funcs, args.batch_size)
+                total_lines += send_lamda(i, lines, funcs, args.batch_size)
             i += 1
+    return total_lines
 
 
 def parse_range(args, queues, funcs):
-    first = 0
+    total_lines = 0
+    first = 1
     if "-" in args.range:
         first = int(args.range.split("-")[0])
         final = int(args.range.split("-")[1])
@@ -97,15 +103,15 @@ def parse_range(args, queues, funcs):
         stop = min(final, start + args.batch_size)
         lines = [str(i) for i in range(start, stop + 1)]
         if args.use_sqs:
-            send_sqs(start, lines, queues, args.batch_size)
+            total_lines += send_sqs(start, lines, queues, args.batch_size)
         else:
-            send_lamda(start, lines, funcs, args.batch_size)
+            total_lines += send_lamda(start, lines, funcs, args.batch_size)
 
         if stop >= final:
             break
 
         start += args.batch_size
-    pass
+    return total_lines
 
 
 def get_configs():
@@ -120,7 +126,7 @@ if __name__ == "__main__":
         "url_config", help="path to URL config JSON detailing ULS, headers, etc"
     )
     parser.add_argument(
-        "--use-sqs",
+        "--use-input-sqs",
         "-s",
         action="store_true",
         dest="use_sqs",
@@ -140,6 +146,34 @@ if __name__ == "__main__":
     )
     input_type.add_argument(
         "--input-file", "-i", dest="input", help="Input file to use"
+    )
+
+    do_output = parser.add_mutually_exclusive_group(required=False)
+    do_output.add_argument(
+        "--output",
+        "-o",
+        action="store_true",
+        dest="output_stdout",
+        help="Also automatically call 'get_data', print to stdout out",
+    )
+    do_output.add_argument(
+        "--output-file",
+        "-of",
+        dest="output_file",
+        help="Also automatically call 'get_data', print to stdout and output to this file",
+    )
+    parser.add_argument(
+        "--output-pretty",
+        "-op",
+        action="store_true",
+        dest="pretty",
+        help="If calling 'get_data', pretty print output",
+    )
+    parser.add_argument(
+        "--output-unique-only",
+        "-ou",
+        dest="unique_only",
+        help="If calling 'get_data', only print unique responses",
     )
     args = parser.parse_args()
 
@@ -167,6 +201,11 @@ if __name__ == "__main__":
     random.shuffle(funcs)
 
     if args.input:
-        parse_file(args, queues, funcs)
+        total_lines = parse_file(args, queues, funcs)
     else:
-        parse_range(args, queues, funcs)
+        total_lines = parse_range(args, queues, funcs)
+
+    if args.output_stdout or args.output_file or args.pretty or args.unique_only:
+        # Call 
+        args.expected_count = total_lines
+        get_data(args, configs)
