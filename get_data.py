@@ -1,6 +1,7 @@
 from contextlib import ExitStack
 import argparse
 import json
+import subprocess
 import time
 import boto3
 
@@ -8,12 +9,21 @@ import boto3
 def log_data(data, line, json_response, outf):
     if json_response:
         data = json.loads(data)
-    output = json.dumps(
-        {
-            "line": line,
-            "data": data,
-        }
-    )
+    if args.pretty:
+        output = json.dumps(
+            {
+                "line": line,
+                "data": data,
+            },
+            indent=True,
+        )
+    else:
+        output = json.dumps(
+            {
+                "line": line,
+                "data": data,
+            }
+        )
 
     print(output)
     if outf:
@@ -53,9 +63,14 @@ def recieve_queues(args, queues, outf):
         time.sleep(0.1)
 
 
+def get_configs():
+    proc = subprocess.run(["terraform", "output", "--json"], capture_output=True)
+    config_json = proc.stdout.decode()
+    return json.loads(config_json)["config"]["value"]
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Recieve messages from SQS queues")
-    parser.add_argument("config", help="path to 'terraform output --json' config JSON")
     parser.add_argument(
         "--unique-only",
         "-u",
@@ -76,11 +91,16 @@ if __name__ == "__main__":
         "-o",
         help="Optional output file to stream to",
     )
+    parser.add_argument(
+        "--pretty",
+        "-p",
+        help="Prettify output",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     # Parse config to extract queues
-    with open(args.config, "r") as f:
-        configs = json.load(f)["config"]["value"]
+    configs = get_configs()
 
     queues = []
     for c in configs:

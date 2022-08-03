@@ -18,17 +18,14 @@ TODO: Add diagram
 
 # Setup
 ## Deploy Terraform
-Open the [main.tf terraform file](./terraform/main.tf). For each region to deploy lambdas to, copy both the `provider` and `module` blocks,
+Open the [main.tf terraform file](./main.tf). For each region to deploy lambdas to, copy both the `provider` and `module` blocks,
 chaning the `region` variable. Also add the module to the `locals.modules` variable at the end. Optionally change the other variable values.
 
 If `lambda_count` is more than 1, don't set `enable_input_queue`, otherwise this will drastically slow down the provisioning time.
 
 Then Use terraform to createh environment:
 ```bash
-cd terraform
 terraform apply --auto-approve
-# Save the output for use in send_data.py
-terraform output --json > tf_config.json
 ```
 
 
@@ -60,16 +57,16 @@ python -m pip install -r requirements.txt
 Use the [send_data](./send_data.py) Script, passing in the outputted Terraform Config (to get the lambda and SQS URLs), the URL Template,
 and any input file:
 ```bash
-python send_data.py tf_config.json url_config_github.jinja2 --input-file users.txt
+python send_data.py url_config_github.jinja2 --input-file users.txt
 ```
 
 If using a range and not an input file, use `--range`:
 ```bash
 # Set `line_num` as a counter from 0 to 10:
-python send_data.py tf_config.json url_config_github.jinja2 --range 10
+python send_data.py url_config_github.jinja2 --range 10
 
 # Set `line_num` as a counter from 22 to 55 in batches of 5:
-python send_data.py tf_config.json url_config_github.jinja2 --range 22-55 --batch-size 5
+python send_data.py url_config_github.jinja2 --range 22-55 --batch-size 5
 
 # For more options
 python send_data.py --help
@@ -80,7 +77,7 @@ Use the [get_data](./get_data.py) Script, passing in the outputted Terraform con
 
 ```bash
 # Stream to stdout:
-python get_data.py tf_config.json
+python get_data.py
 
 # Save to file:
 python get_data.py --output data.log

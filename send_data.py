@@ -3,6 +3,7 @@ from itertools import islice
 import boto3
 import json
 import random
+import subprocess
 from jinja2 import Template
 
 
@@ -91,28 +92,30 @@ def parse_range(args, queues, funcs):
     else:
         final = int(args.range)
 
-    breakpoint()
     start = first
     while True:
         stop = min(final, start + args.batch_size)
-        lines = [str(i) for i in range(start, stop+1)]
+        lines = [str(i) for i in range(start, stop + 1)]
         if args.use_sqs:
             send_sqs(start, lines, queues, args.batch_size)
         else:
             send_lamda(start, lines, funcs, args.batch_size)
-        
+
         if stop >= final:
             break
-        
+
         start += args.batch_size
     pass
 
 
+def get_configs():
+    proc = subprocess.run(["terraform", "output", "--json"], capture_output=True)
+    config_json = proc.stdout.decode()
+    return json.loads(config_json)["config"]["value"]
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Send messages to SQS queue")
-    parser.add_argument(
-        "tf_config", help="path to 'terraform output --json' config JSON"
-    )
     parser.add_argument(
         "url_config", help="path to URL config JSON detailing ULS, headers, etc"
     )
@@ -141,8 +144,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Parse config to extract queues
-    with open(args.tf_config, "r") as f:
-        configs = json.load(f)["config"]["value"]
+    configs = get_configs()
 
     with open(args.url_config, "r") as f:
         uconfig_txt = f.read()

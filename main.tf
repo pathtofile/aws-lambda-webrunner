@@ -22,7 +22,7 @@ provider "aws" {
   alias  = "us-west-1"
 }
 module "tf_module_01" {
-  source    = "./lambda-sqs"
+  source    = "./tf_lambda_sqs"
   providers = { aws = aws.us-west-1 }
 
   base_name              = var.base_name
@@ -41,7 +41,7 @@ module "tf_module_01" {
 #   alias  = "us-east-1"
 # }
 # module "tf_module_02" {
-#   source    = "./lambda-sqs"
+#   source    = "./tf_lambda_sqs"
 #   providers = { aws = aws.us-east-1 }
 
 #   base_name              = var.base_name
