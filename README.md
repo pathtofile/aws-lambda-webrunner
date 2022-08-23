@@ -110,13 +110,10 @@ terraform destroy --auto-approve
 ```
 
 # Links:
-## Cost estimates:
-https://aws.amazon.com/sqs/pricing/
-
-## Misc
-https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html
-https://docs.aws.amazon.com/lambda/latest/dg/with-sqs-example.html
-https://www.youtube.com/watch?v=nhEFJgIhvuk
-https://aws.amazon.com/blogs/compute/understanding-how-aws-lambda-scales-when-subscribed-to-amazon-sqs-queues/
-https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function
-https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.delete_messages
+ - https://aws.amazon.com/sqs/pricing/
+ - https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html
+ - https://docs.aws.amazon.com/lambda/latest/dg/with-sqs-example.html
+ - https://www.youtube.com/watch?v=nhEFJgIhvuk
+ - https://aws.amazon.com/blogs/compute/understanding-how-aws-lambda-scales-when-subscribed-to-amazon-sqs-queues/
+ - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function
+ - https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html#SQS.Queue.delete_messages
