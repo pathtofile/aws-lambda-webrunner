@@ -1,4 +1,4 @@
-# AWS Lambda Request Maker
+# AWS Lambda Request Runner
 Spreads out arbitrary web requests across multiple AWS Lambdas.
 
 # Motivation
